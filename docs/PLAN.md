@@ -35,13 +35,37 @@ Warnings/info (not blocking): an ID printed without leading zeros that is valid 
 - Notes can contain "החלק בנכס 1/3" (a lien on a share). These are outside the owners section and are not counted.
 - In the review screen, PDF pages are rendered with `disableFontFace` (glyph outlines from the PDF), because some embedded font subsets lose characters when loaded as browser fonts.
 
+### Round 2: agent vs platform (5 more extracts)
+Each file was read by hand (visually) and by the platform (core code and the built web app in Chromium), then compared.
+Result: **100% field-level agreement** (גוש, חלקה, area, owner names, IDs, shares).
+Over 10 PDFs in total there were no reading errors. Every "needs review" was a genuine issue printed in the source document (old IDs).
+
+Decision: keep the deterministic text-layer parser.
+- OCR would only add risk on digital PDFs; it is kept for scanned files (Phase 3).
+- An AI reader produced the same results, but would need a server, cost money and send personal data to a third party.
+
+Gaps found, and how they were fixed:
+- **The same extract uploaded twice.** `src/core/batch.ts` marks the copy "כפול" and leaves it out of the ZIP.
+  Two *different* extracts of the same parcel get a warning on both.
+- **An ID printed as "1/234560".** New message `ID_NONSTANDARD` (old ID; compare and fix by hand, or approve with a note). It is never auto-fixed.
+- **Easement section (זיקות הנאה) not mentioned.** Now reported as info, together with שעבודים, צווים and הצמדות.
+- **Noisy table.** Repeated "ID padded" warnings collapse into one line; the full list is in the review screen and the report.
+- **New regression fixtures:** `old-easement-6-owners` (338/2815 + 45/563, easement) and `old-slash-id`.
+
 ## Excel output (`src/core/excel/ownershipSheet.ts`)
 The layout was reproduced from the office file and verified **cell by cell** (values, formulas, number formats, fonts, fills, borders, merges, column widths, row heights) against the office's hand-made Excel for the sample parcel (`npm run compare:private`). It was also re-read independently with openpyxl and recalculated in LibreOffice (totals 100%, area = registered area).
 Intentional difference: every cell has right-to-left reading order (as requested).
 
 ## Testing
 - Unit tests: fractions, ID check digit and padding, Hebrew guards.
-- Golden tests: 4 **anonymized** real extracts (2026 standard; 2019 "בשלמות" person; 2019 state; 2019 multi-owner with notes).
+- Golden tests: 6 **anonymized** real extracts:
+  - 2026 standard;
+  - 2019 "בשלמות" person;
+  - 2019 state;
+  - 2019 multi-owner with notes;
+  - 2019 6 owners with an easement;
+  - 2019 non-standard ID.
+- Unit tests for batch duplicate detection.
 - Mutation tests: a removed owner, a wrong ID digit, a reversed name, a missing share, a scanned file, not a נסח, a lease section, a truncated file, a header mismatch and a missing area are all caught.
 - Local-only with real data: `compare:private` (Excel diff), `e2e:private` (real browser: upload → statuses → review/approve → ZIP; asserts no external network requests).
 

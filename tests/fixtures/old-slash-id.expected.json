@@ -1,0 +1,51 @@
+{
+ "ok": true,
+ "data": {
+  "gush": "7001",
+  "helka": "145",
+  "registeredArea": 10096,
+  "planArea": 10096,
+  "owners": [
+   {
+    "name": "ישראלי ישראל",
+    "idType": "ת.ז",
+    "idNumber": "1/234560",
+    "share": "בשלמות",
+    "deed": "5097/1979",
+    "date": "04/05/1979",
+    "action": "רישום בעלות לאחר הסדר"
+   }
+  ]
+ },
+ "meta": {
+  "pdfTitle": "Nesach",
+  "pageCount": 1,
+  "sections": [
+   "תיאור הנכס",
+   "בעלויות",
+   "הערות",
+   "סוף נתונים"
+  ],
+  "ownerHeaderCount": 1,
+  "shareLabelCount": 1,
+  "hasEndMarker": true,
+  "pageHeaders": [
+   {
+    "page": 1,
+    "gush": "7001",
+    "helka": "145"
+   }
+  ],
+  "nesachNumber": "100001",
+  "issueDate": "20/09/2019",
+  "registryOffice": "פתח תקוה"
+ },
+ "issues": [
+  {
+   "severity": "info",
+   "code": "HAS_NOTES",
+   "message": "בנסח רשומות הערות (אינן משפיעות על טבלת הבעלות).",
+   "source": "parse"
+  }
+ ]
+}

@@ -57,6 +57,30 @@ describe('golden fixtures', () => {
   });
 });
 
+describe('round 2 extracts (old format)', () => {
+  it('6 owners, mixed denominators 338/2815 and 45/563, easement section reported → ok', () => {
+    const r = run(loadRaw('old-easement-6-owners'));
+    expect(r.status).toBe('ok');
+    const d = r.parsed.data!;
+    expect(d.registeredArea).toBe(5630);
+    expect(d.owners.map((o) => o.share)).toEqual(['1/5', '1/5', '1/5', '1/5', '338/2815', '45/563']);
+    expect(d.owners.every((o) => /^\d{9}$/.test(o.idNumber!))).toBe(true);
+    expect(r.codes.filter((c) => c === 'ID_PADDED')).toHaveLength(5);
+    expect(r.codes).toEqual(expect.arrayContaining(['HAS_EASEMENTS', 'HAS_NOTES']));
+    expect(r.parsed.meta.sections).toContain('זיקות הנאה');
+  });
+
+  it('ID printed in a non-standard old format ("1/234560") → review with a clear message, never "fixed" automatically', () => {
+    const r = run(loadRaw('old-slash-id'));
+    expect(r.status).toBe('review');
+    const o = r.parsed.data!.owners[0];
+    expect(o.idNumber).toMatch(/^\d\/\d{6}$/); // kept exactly as printed
+    expect(o.share).toBe('בשלמות');
+    expect(r.parsed.data!.registeredArea).toBe(10096);
+    expect(r.issues.filter((i) => i.severity === 'error')).toEqual([expect.objectContaining({ code: 'ID_NONSTANDARD', ownerIndex: 0 })]);
+  });
+});
+
 describe('mutations of a good extract are caught (never silently wrong)', () => {
   const base = loadRaw('standard-2026');
   const owners = run(base).parsed.data!.owners;

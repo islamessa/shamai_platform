@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { batchIssues, type BatchInfo } from '../core/batch';
 import { STATUS_LABEL } from '../core/labels';
-import type { FileStatus } from '../core/types';
+import type { FileStatus, Issue } from '../core/types';
 import { isExportable, type FileEntry } from './state';
 
 type Filter = 'all' | 'attention' | 'done';
@@ -9,13 +10,15 @@ const ICON: Record<FileStatus, string> = { processing: '⏳', ok: '✅', approve
 
 export function BatchTable(props: {
   entries: FileEntry[];
+  analysis: Map<string, BatchInfo>;
   onReview: (id: string) => void;
   onDownload: (e: FileEntry) => void;
   onRemove: (id: string) => void;
 }) {
   const [filter, setFilter] = useState<Filter>('all');
+  const isDuplicate = (e: FileEntry) => !!props.analysis.get(e.id)?.duplicateOf;
   const rows = props.entries.filter((e) =>
-    filter === 'all' ? true : filter === 'attention' ? e.status === 'review' || e.status === 'failed' : isExportable(e),
+    filter === 'all' ? true : filter === 'attention' ? e.status === 'review' || e.status === 'failed' : isExportable(e) && !isDuplicate(e),
   );
 
   return (
@@ -46,7 +49,8 @@ export function BatchTable(props: {
         <tbody>
           {rows.map((e) => {
             const idx = props.entries.indexOf(e) + 1;
-            const shown = [...e.issues].sort((a, b) => rank(a.severity) - rank(b.severity)).filter((i) => i.severity !== 'info');
+            const duplicate = isDuplicate(e);
+            const shown = summarize([...batchIssues(props.analysis.get(e.id)), ...e.issues]);
             return (
               <tr key={e.id} className={`row-${e.status}`} data-testid={`row-${idx}`}>
                 <td>{idx}</td>
@@ -59,6 +63,7 @@ export function BatchTable(props: {
                   <span className={`badge ${e.status}`} data-testid="status">
                     {ICON[e.status]} {STATUS_LABEL[e.status]}
                   </span>
+                  {duplicate && <span className="badge dup">כפול</span>}
                 </td>
                 <td className="details">
                   {shown.slice(0, 3).map((i, k) => (
@@ -75,7 +80,7 @@ export function BatchTable(props: {
                       {e.status === 'review' || e.status === 'failed' ? 'בדיקה ועריכה' : 'צפייה / עריכה'}
                     </button>
                   )}
-                  {isExportable(e) && <button onClick={() => props.onDownload(e)}>הורדה</button>}
+                  {isExportable(e) && !duplicate && <button onClick={() => props.onDownload(e)}>הורדה</button>}
                   <button className="ghost" title="הסרה" onClick={() => props.onRemove(e.id)}>
                     ✕
                   </button>
@@ -91,4 +96,25 @@ export function BatchTable(props: {
 
 function rank(s: string) {
   return s === 'error' ? 0 : s === 'warning' ? 1 : 2;
+}
+
+/**
+ * Issues for the compact table view: errors first, info hidden, and the repetitive
+ * "ID completed with leading zeros" warnings collapsed into one line (full list: review screen + report).
+ */
+function summarize(issues: Issue[]): Issue[] {
+  const padded = issues.filter((i) => i.code === 'ID_PADDED').length;
+  const rest = issues.filter((i) => i.code !== 'ID_PADDED' && i.severity !== 'info');
+  if (padded) {
+    rest.push({
+      severity: 'warning',
+      code: 'ID_PADDED_SUMMARY',
+      message:
+        padded === 1
+          ? 'מספר ת.ז אחד הושלם באפסים מובילים (ספרת הביקורת תקינה).'
+          : `${padded} מספרי ת.ז הושלמו באפסים מובילים (ספרת הביקורת תקינה).`,
+      source: 'parse',
+    });
+  }
+  return rest.sort((a, b) => rank(a.severity) - rank(b.severity));
 }

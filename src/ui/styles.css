@@ -83,6 +83,7 @@ th { background: #eef1f6; font-weight: 600; font-size: 0.9rem; }
 .badge.approved { background: var(--info-bg); color: var(--brand); }
 .badge.review { background: var(--warn-bg); color: var(--warn); }
 .badge.failed { background: var(--err-bg); color: var(--err); }
+.badge.dup { background: #eceff4; color: var(--muted); margin-inline-start: 4px; }
 .issue { padding: 2px 0; }
 .issue.error { color: var(--err); }
 .issue.warning { color: var(--warn); }

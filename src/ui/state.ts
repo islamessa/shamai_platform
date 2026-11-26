@@ -1,3 +1,4 @@
+import { analyzeBatch, type BatchInfo } from '../core/batch';
 import { outputFileName } from '../core/excel/ownershipSheet';
 import { parseNesach } from '../core/parseNesach';
 import type { AuditEntry, FileStatus, Issue, ParcelData, ParseResult } from '../core/types';
@@ -48,15 +49,34 @@ export async function processEntry(e: FileEntry): Promise<FileEntry> {
 
 export const isExportable = (e: FileEntry) => (e.status === 'ok' || e.status === 'approved') && !!e.data;
 
+/** Duplicate / same-parcel analysis of the whole batch (derived; recomputed whenever the list changes). */
+export function analyzeEntries(entries: FileEntry[]): Map<string, BatchInfo> {
+  return analyzeBatch(
+    entries.map((e) => ({
+      id: e.id,
+      fileName: e.file.name,
+      nesachNumber: e.parse?.meta.nesachNumber,
+      issueDate: e.parse?.meta.issueDate,
+      gush: e.data?.gush,
+      helka: e.data?.helka,
+    })),
+  );
+}
+
+/** Files that go into the ZIP: ok/approved, minus identical copies of a file already in the batch. */
+export function exportList(entries: FileEntry[], analysis = analyzeEntries(entries)): FileEntry[] {
+  return entries.filter((e) => isExportable(e) && !analysis.get(e.id)?.duplicateOf);
+}
+
 /**
- * Output file names. If the same parcel appears twice in a batch, later copies get " (2)", " (3)"...
- * so no file silently overwrites another inside the ZIP.
+ * Output file names. Identical copies get no name (they are not exported). If two different extracts of the
+ * same parcel are exported, later ones get " (2)", " (3)"... so no file silently overwrites another in the ZIP.
  */
-export function outputNames(entries: FileEntry[]): Map<string, string> {
+export function outputNames(entries: FileEntry[], analysis = analyzeEntries(entries)): Map<string, string> {
   const names = new Map<string, string>();
   const used = new Map<string, number>();
   for (const e of entries) {
-    if (!e.data) continue;
+    if (!e.data || analysis.get(e.id)?.duplicateOf) continue;
     const base = outputFileName(e.data);
     const n = (used.get(base) ?? 0) + 1;
     used.set(base, n);

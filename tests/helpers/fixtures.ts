@@ -4,7 +4,14 @@ import { parseNesach } from '../../src/core/parseNesach';
 import type { Issue, ParseResult, RawDocument, RawItem } from '../../src/core/types';
 import { autoStatus, validateData } from '../../src/core/validate';
 
-export const FIXTURES = ['standard-2026', 'old-whole-person', 'old-whole-state', 'old-multi-owner'] as const;
+export const FIXTURES = [
+  'standard-2026',
+  'old-whole-person',
+  'old-whole-state',
+  'old-multi-owner',
+  'old-easement-6-owners',
+  'old-slash-id',
+] as const;
 
 const dir = resolve(import.meta.dirname, '../fixtures');
 

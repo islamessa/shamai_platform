@@ -4,7 +4,7 @@ import { validateData } from '../core/validate';
 import { BatchTable } from './BatchTable';
 import { downloadOne, downloadReport, downloadZip } from './download';
 import { ReviewPanel } from './ReviewPanel';
-import { isExportable, newEntry, processEntry, type FileEntry } from './state';
+import { analyzeEntries, exportList, newEntry, processEntry, type FileEntry } from './state';
 import { UploadZone } from './UploadZone';
 
 export function App() {
@@ -47,7 +47,8 @@ export function App() {
     return c;
   }, [entries]);
 
-  const exportable = entries.filter(isExportable).length;
+  const analysis = useMemo(() => analyzeEntries(entries), [entries]);
+  const exportable = exportList(entries, analysis).length;
   const reviewing = entries.find((e) => e.id === reviewId) ?? null;
 
   const approve = (id: string, data: ParcelData, audit: AuditEntry[], overrideNote?: string) => {
@@ -128,6 +129,7 @@ export function App() {
           )}
           <BatchTable
             entries={entries}
+            analysis={analysis}
             onReview={setReviewId}
             onDownload={(e) => downloadOne(e, entries, planNumber)}
             onRemove={(id) => setEntries((prev) => prev.filter((e) => e.id !== id))}

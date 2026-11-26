@@ -26,6 +26,16 @@ export const SECTION_TITLES = [
   'סוף נתונים',
 ] as const;
 
+/** Registered sections that do not change the ownership table but are worth mentioning in the report. */
+const SECTION_INFO: Record<string, [code: string, message: string]> = {
+  'משכנתאות': ['HAS_MORTGAGES', 'בנסח רשומות משכנתאות (אינן משפיעות על טבלת הבעלות).'],
+  'הערות': ['HAS_NOTES', 'בנסח רשומות הערות (אינן משפיעות על טבלת הבעלות).'],
+  'זיקות הנאה': ['HAS_EASEMENTS', 'בנסח רשומות זיקות הנאה (אינן משפיעות על טבלת הבעלות).'],
+  'שעבודים': ['HAS_LIENS', 'בנסח רשומים שעבודים (אינם משפיעים על טבלת הבעלות).'],
+  'צווים': ['HAS_ORDERS', 'בנסח רשומים צווים (אינם משפיעים על טבלת הבעלות).'],
+  'הצמדות': ['HAS_ATTACHMENTS', 'בנסח רשומות הצמדות.'],
+};
+
 const END_MARKER = 'סוף נתונים';
 const SHARE_LABEL = 'החלק בנכס';
 const NOTE_LABEL = 'הערות:';
@@ -152,11 +162,8 @@ export function parseNesach(doc: RawDocument): ParseResult {
   if (meta.sections.includes('חכירות')) {
     issues.push(issue('error', 'UNSUPPORTED_LEASE', 'הנסח כולל פרק חכירות, שעדיין לא נתמך. יש לבדוק ידנית.'));
   }
-  if (meta.sections.includes('משכנתאות')) {
-    issues.push(issue('info', 'HAS_MORTGAGES', 'בנסח רשומות משכנתאות (אינן משפיעות על טבלת הבעלות).'));
-  }
-  if (meta.sections.includes('הערות')) {
-    issues.push(issue('info', 'HAS_NOTES', 'בנסח רשומות הערות (אינן משפיעות על טבלת הבעלות).'));
+  for (const [section, [code, message]] of Object.entries(SECTION_INFO)) {
+    if (meta.sections.includes(section)) issues.push(issue('info', code, message));
   }
 
   // ---- 3. registered area ("תיאור הנכס" → column "שטח במ"ר") --------------------------------

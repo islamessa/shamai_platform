@@ -41,6 +41,16 @@ export function validateData(d: ParcelData): Issue[] {
       out.push(issue('error', 'ID_MISSING', `${who}: סוג זיהוי "${type}" ללא מספר זיהוי.`, i));
     } else if (!type) {
       out.push(issue('error', 'ID_TYPE_MISSING', `${who}: מספר זיהוי ${num} ללא סוג זיהוי.`, i));
+    } else if (/\D/.test(num)) {
+      // e.g. "1/234560" as printed on some old registrations
+      out.push(
+        issue(
+          'error',
+          'ID_NONSTANDARD',
+          `${who}: מספר הזיהוי מודפס בנסח בפורמט לא תקני (${num}), כנראה מספר ישן. יש להשוות לנסח ולתקן ידנית, או לאשר עם הערה.`,
+          i,
+        ),
+      );
     } else if (PERSONAL_ID_TYPES.has(type)) {
       if (/^\d{1,8}$/.test(num)) {
         const padded = padIdIfValid(num);

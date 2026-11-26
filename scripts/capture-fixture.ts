@@ -6,7 +6,8 @@
  * Writes <name>.raw.json (pdf.js text items with geometry) and <name>.expected.json (parsed result).
  * - Owner names → fake names; ID numbers → fake IDs with the same "shape" (valid 9 digits, short-but-paddable,
  *   or short-and-invalid), so the same validation paths are exercised.
- * - Free text in the "הערות" section (may contain names of other people) → placeholder; numbers are kept.
+ * - Free text in sections other than the parcel description and the owners (notes, easements, mortgages; these
+ *   may contain names of other people) → placeholder; numbers are kept.
  * - גוש/חלקה → fake numbers.
  * Text geometry is preserved (right edges stay aligned with their columns).
  * The script aborts if any original name or ID number is still present in the output.
@@ -44,6 +45,12 @@ function fakeInvalidShort(len: number, k: number): string {
   }
 }
 
+/** Replaces the digits of e.g. "1/234560" with fake digits, keeping non-digit characters in place. */
+function keepShape(printed: string, fakeDigits: string): string {
+  let k = 0;
+  return printed.replace(/\d/g, () => fakeDigits[k++] ?? '0');
+}
+
 async function main() {
   const [pdfPath, outBase] = process.argv.slice(2);
   if (!pdfPath || !outBase) {
@@ -67,6 +74,7 @@ async function main() {
       let fake: string;
       if (padded.has(k)) fake = fakeId(k).replace(/^0+/, '');
       else if (/^\d{9}$/.test(printed)) fake = fakeId(k);
+      else if (/\D/.test(printed)) fake = keepShape(printed, fakeInvalidShort(printed.replace(/\D/g, '').length, k));
       else fake = fakeInvalidShort(printed.length, k);
       map.set(printed, fake);
       secrets.push(printed, o.idNumber);
@@ -81,7 +89,8 @@ async function main() {
   const fakeHelka = String(100 + Number(real.data.helka) % 50);
   const { gush, helka } = real.data;
 
-  // items inside the "הערות" section get their free text replaced
+  // free text outside the parcel description and the owners (notes, easements, mortgages...) can name
+  // other people (lawyers, lenders, beneficiaries), so it is replaced
   const noteItems = new Set<RawItem>();
   let section = '';
   for (const page of raw.pages) {
@@ -92,7 +101,9 @@ async function main() {
         section = l.text;
         continue;
       }
-      if (section === 'הערות') for (const it of l.items) noteItems.add(it);
+      if (/^עמוד\s*\d+\s*מתוך\s*\d+$/.test(l.text)) continue; // page footer
+      // after "סוף נתונים" only the fixed signature/fee notice follows
+      if (section && !['תיאור הנכס', 'בעלויות', 'סוף נתונים'].includes(section)) for (const it of l.items) noteItems.add(it);
     }
   }
 

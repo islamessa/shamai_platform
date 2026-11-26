@@ -1,0 +1,143 @@
+{
+ "ok": true,
+ "data": {
+  "gush": "7001",
+  "helka": "142",
+  "registeredArea": 5630,
+  "planArea": 5630,
+  "owners": [
+   {
+    "name": "ישראלי ישראל",
+    "idType": "ת.ז",
+    "idNumber": "031415904",
+    "share": "1/5",
+    "deed": "3284/2016/1",
+    "date": "28/01/2016",
+    "action": "צוואה"
+   },
+   {
+    "name": "כהן דנה",
+    "idType": "ת.ז",
+    "idNumber": "031415979",
+    "share": "1/5",
+    "deed": "3284/2016/1",
+    "date": "28/01/2016",
+    "action": "צוואה"
+   },
+   {
+    "name": "לוי יוסף",
+    "idType": "ת.ז",
+    "idNumber": "031416043",
+    "share": "1/5",
+    "deed": "3284/2016/1",
+    "date": "28/01/2016",
+    "action": "צוואה"
+   },
+   {
+    "name": "מזרחי רונית",
+    "idType": "ת.ז",
+    "idNumber": "031416118",
+    "share": "1/5",
+    "deed": "41689/2016/1",
+    "date": "23/10/2016",
+    "action": "מכר ללא תמורה"
+   },
+   {
+    "name": "פרץ אברהם",
+    "idType": "ת.ז",
+    "idNumber": "031416183",
+    "share": "338/2815",
+    "deed": "12061/2018/2",
+    "date": "21/03/2018",
+    "action": "עודף"
+   },
+   {
+    "name": "ביטון מיכל",
+    "idType": "ת.ז",
+    "idNumber": "031416258",
+    "share": "45/563",
+    "deed": "23734/2018/1",
+    "date": "12/06/2018",
+    "action": "מכר"
+   }
+  ]
+ },
+ "meta": {
+  "pdfTitle": "Nesach",
+  "pageCount": 2,
+  "sections": [
+   "תיאור הנכס",
+   "בעלויות",
+   "הערות",
+   "זיקות הנאה",
+   "סוף נתונים"
+  ],
+  "ownerHeaderCount": 6,
+  "shareLabelCount": 6,
+  "hasEndMarker": true,
+  "pageHeaders": [
+   {
+    "page": 1,
+    "gush": "7001",
+    "helka": "142"
+   },
+   {
+    "page": 2,
+    "gush": "7001",
+    "helka": "142"
+   }
+  ],
+  "nesachNumber": "100001",
+  "issueDate": "20/09/2019",
+  "registryOffice": "פתח תקוה"
+ },
+ "issues": [
+  {
+   "severity": "info",
+   "code": "HAS_NOTES",
+   "message": "בנסח רשומות הערות (אינן משפיעות על טבלת הבעלות).",
+   "source": "parse"
+  },
+  {
+   "severity": "info",
+   "code": "HAS_EASEMENTS",
+   "message": "בנסח רשומות זיקות הנאה (אינן משפיעות על טבלת הבעלות).",
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 1: מספר הזיהוי מופיע בנסח כ-31415904 (ללא אפסים מובילים). הושלם ל-031415904; ספרת הביקורת תקינה.",
+   "ownerIndex": 0,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 2: מספר הזיהוי מופיע בנסח כ-31415979 (ללא אפסים מובילים). הושלם ל-031415979; ספרת הביקורת תקינה.",
+   "ownerIndex": 1,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 3: מספר הזיהוי מופיע בנסח כ-31416043 (ללא אפסים מובילים). הושלם ל-031416043; ספרת הביקורת תקינה.",
+   "ownerIndex": 2,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 5: מספר הזיהוי מופיע בנסח כ-31416183 (ללא אפסים מובילים). הושלם ל-031416183; ספרת הביקורת תקינה.",
+   "ownerIndex": 4,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 6: מספר הזיהוי מופיע בנסח כ-31416258 (ללא אפסים מובילים). הושלם ל-031416258; ספרת הביקורת תקינה.",
+   "ownerIndex": 5,
+   "source": "parse"
+  }
+ ]
+}

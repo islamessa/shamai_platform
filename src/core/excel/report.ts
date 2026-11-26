@@ -46,7 +46,7 @@ export async function buildReportWorkbook(rows: ReportRow[], planNumber?: string
     if (r.overrideNote) details.push(`[אישור ידני חרף שגיאות] ${r.overrideNote}`);
     const row = s.addRow([
       k + 1, r.fileName, STATUS_LABEL[r.status], r.data?.gush ?? '', r.data?.helka ?? '', r.data?.registeredArea ?? '',
-      r.data?.owners.length ?? '', total, r.status === 'ok' || r.status === 'approved' ? r.outputName ?? '' : '(לא הופק)',
+      r.data?.owners.length ?? '', total, (r.status === 'ok' || r.status === 'approved') && r.outputName ? r.outputName : '(לא הופק)',
       details.join('\n'),
     ]);
     row.eachCell((c) => {
