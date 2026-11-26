@@ -52,6 +52,24 @@ Gaps found, and how they were fixed:
 - **Noisy table.** Repeated "ID padded" warnings collapse into one line; the full list is in the review screen and the report.
 - **New regression fixtures:** `old-easement-6-owners` (338/2815 + 45/563, easement) and `old-slash-id`.
 
+### Round 3: "deal with all the files"
+**Root cause of files hanging on the live site.**
+- pdf.js's *modern* build calls very new JavaScript features (`Promise.try`, `Map.getOrInsertComputed`) without fallbacks.
+- On any browser that is not the very latest version, every file stayed on "בעיבוד…".
+- Reproduced in Chromium with those features removed; it was hidden in testing because the test browser was brand new.
+- Fix: the *legacy* pdf.js build (ships the fallbacks), plus a 90 s read timeout so no file can hang forever.
+- The E2E test now always runs as an "older browser" (features stripped from the page and the pdf.js worker).
+
+**Policy change: every readable file produces an Excel.**
+- Findings no longer block the download.
+- Values are copied exactly as printed in the נסח. The concerned cell gets a hover note, plus a light red fill for errors, and the reason is listed in the report.
+- Safe automatic fixes, each recorded in a cell note: ID zero-padding (check digit verified) and reversed Hebrew names.
+- Unreadable files (scanned, corrupt) can be filled in by hand next to the PDF.
+- The review screen is optional editing with an optional note; there is no mandatory approval.
+
+**Review-screen preview.** It now uses the browser's own PDF viewer (exact rendering, zoom, search; local blob: URL).
+pdf.js canvas drawing remains only as a fallback, because both pdf.js builds dropped some glyphs of these fonts when drawing.
+
 ## Excel output (`src/core/excel/ownershipSheet.ts`)
 The layout was reproduced from the office file and verified **cell by cell** (values, formulas, number formats, fonts, fills, borders, merges, column widths, row heights) against the office's hand-made Excel for the sample parcel (`npm run compare:private`). It was also re-read independently with openpyxl and recalculated in LibreOffice (totals 100%, area = registered area).
 Intentional difference: every cell has right-to-left reading order (as requested).

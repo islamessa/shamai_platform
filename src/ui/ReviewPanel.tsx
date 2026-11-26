@@ -3,7 +3,7 @@ import { format, parseShare, sum, toNumber } from '../core/fraction';
 import { padIdIfValid } from '../core/israeliId';
 import { SEVERITY_LABEL } from '../core/labels';
 import type { AuditEntry, Owner, ParcelData } from '../core/types';
-import { hasErrors, validateData } from '../core/validate';
+import { validateData } from '../core/validate';
 import { PdfViewer } from './PdfViewer';
 import { diffData, type FileEntry } from './state';
 
@@ -16,12 +16,10 @@ export function ReviewPanel(props: {
 }) {
   const { entry } = props;
   const [draft, setDraft] = useState<ParcelData>(() => structuredClone(entry.data ?? EMPTY));
-  const [verified, setVerified] = useState(false);
   const [note, setNote] = useState('');
 
   const parseIssues = entry.parse?.issues ?? entry.issues;
   const dataIssues = useMemo(() => validateData(draft), [draft]);
-  const errors = hasErrors(dataIssues);
   const issuesFor = (i: number) => dataIssues.filter((x) => x.ownerIndex === i && x.severity === 'error');
 
   const shareTotal = useMemo(() => {
@@ -34,13 +32,14 @@ export function ReviewPanel(props: {
     setDraft((d) => ({ ...d, owners: d.owners.map((o, k) => (k === i ? { ...o, ...patch } : o)) }));
   const setNum = (v: string) => (v.trim() === '' ? null : Number(v.replace(/,/g, '')));
 
-  const canApprove = verified && (!errors || note.trim().length >= 5);
 
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="review">
         <div className="review-head">
-          <h2>בדיקה ועריכה: {entry.file.name}</h2>
+          <h2>
+            {entry.data ? 'בדיקה ועריכה' : 'הזנה ידנית'}: {entry.file.name}
+          </h2>
           <button className="ghost" onClick={props.onCancel}>
             סגירה ✕
           </button>
@@ -155,29 +154,27 @@ export function ReviewPanel(props: {
             </div>
 
             <div className="approve">
-              <label className="check">
-                <input type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} data-testid="verified" />
-                בדקתי את הנתונים מול הנסח המקורי
+              <label className="override">
+                הערה לדוח העיבוד (לא חובה):
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="לדוגמה: מספר ת.ז ישן ללא ספרת ביקורת, תואם לנסח"
+                />
               </label>
-              {errors && (
-                <label className="override">
-                  נותרו שגיאות. כדי לאשר בכל זאת יש לנמק (יירשם בדוח העיבוד):
-                  <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="לדוגמה: מספר ת.ז ישן ללא ספרת ביקורת, תואם לנסח" />
-                </label>
-              )}
               <div className="buttons">
                 <button
                   className="primary"
-                  disabled={!canApprove}
                   data-testid="approve"
-                  onClick={() => props.onApprove(draft, diffData(entry.original, draft), errors ? note.trim() : undefined)}
+                  onClick={() => props.onApprove(draft, diffData(entry.original, draft), note.trim() || undefined)}
                 >
-                  אישור והכללה בהורדה
+                  שמירה
                 </button>
                 <button className="ghost" onClick={props.onCancel}>
                   ביטול
                 </button>
               </div>
+              <p className="hint">כל שינוי נרשם בדוח העיבוד. הקובץ ייכלל בהורדה בכל מקרה; ערכים שעדיין דורשים תשומת לב יסומנו באקסל.</p>
             </div>
           </div>
           <PdfViewer file={entry.file} />

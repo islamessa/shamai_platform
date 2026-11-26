@@ -44,7 +44,10 @@ input.short { max-width: 70px; }
 .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 .top h1 { margin: 0 0 4px; font-size: 1.5rem; }
 .privacy { margin: 0; color: var(--ok); font-size: 0.95rem; }
+.options { display: flex; flex-direction: column; gap: 8px; }
 .plan { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--muted); min-width: 220px; }
+.check-inline { display: flex; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.check-inline input { width: auto; }
 
 .drop {
   border: 2px dashed #9fb3d1;
@@ -97,7 +100,10 @@ th { background: #eef1f6; font-weight: 600; font-size: 0.9rem; }
 .review-head h2 { margin: 0; font-size: 1.1rem; }
 .review-body { flex: 1; display: grid; grid-template-columns: minmax(480px, 1fr) minmax(380px, 1fr); overflow: hidden; }
 .review-form { overflow: auto; padding: 14px 16px; }
-.pdf-viewer { overflow: auto; padding: 12px; background: #4b5363; border-inline-start: 1px solid var(--line); }
+.pdf-pane { display: flex; flex-direction: column; min-height: 0; border-inline-start: 1px solid var(--line); background: #4b5363; }
+.pdf-toolbar { padding: 6px 12px; background: var(--card); border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.pdf-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+.pdf-viewer { flex: 1; overflow: auto; padding: 12px; }
 .pdf-page { display: block; margin: 0 auto 12px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
 .box { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
 .box h3 { margin: 0 0 6px; font-size: 0.95rem; }
@@ -112,6 +118,6 @@ th { background: #eef1f6; font-weight: 600; font-size: 0.9rem; }
 .approve { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
 .approve .check { display: flex; gap: 8px; align-items: center; font-weight: 600; }
 .approve .check input { width: auto; }
-.approve .override { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; color: var(--err); }
+.approve .override { display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
 .approve .buttons { display: flex; gap: 8px; margin-top: 12px; }
 .foot { margin-top: 28px; color: var(--muted); font-size: 0.85rem; }

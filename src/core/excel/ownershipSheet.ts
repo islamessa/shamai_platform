@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { parseShare, sum, toNumber, type Fraction } from '../fraction';
-import type { ParcelData } from '../types';
+import type { Issue, ParcelData } from '../types';
 
 /*
  * Builds the "בעלות" sheet exactly like the office template:
@@ -15,6 +15,44 @@ import type { ParcelData } from '../types';
 export interface OwnershipOptions {
   /** plan number for the title; empty → "תכנית _______" */
   planNumber?: string;
+  /**
+   * Issues to mark inside the sheet: the cell concerned gets a hover note with the explanation;
+   * errors also get a light red fill. Info-level issues are not marked.
+   */
+  issues?: Issue[];
+}
+
+const ERROR_FILL: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC7CE' } };
+
+/** Which cell an issue belongs to. File-level issues go to the subtitle cell (B3). */
+function cellForIssue(i: Issue, first: number, last: number, total: number): string {
+  const c = i.code;
+  if (i.ownerIndex !== undefined && first + i.ownerIndex <= last) {
+    const row = first + i.ownerIndex;
+    if (c.startsWith('ID_') || c === 'DUPLICATE_ID') return `G${row}`;
+    if (c.startsWith('SHARE')) return `H${row}`;
+    return `F${row}`;
+  }
+  if (c === 'SHARES_SUM') return `I${total}`;
+  if (c.startsWith('AREA')) return `D${first}`;
+  if (c === 'PLAN_AREA_INVALID') return `E${first}`;
+  if (c === 'GUSH_INVALID' || c === 'HEADER_MISMATCH') return `B${first}`;
+  if (c === 'HELKA_INVALID') return `C${first}`;
+  return 'B3';
+}
+
+function annotate(ws: ExcelJS.Worksheet, issues: Issue[], first: number, last: number, total: number) {
+  const byCell = new Map<string, Issue[]>();
+  for (const i of issues) {
+    if (i.severity === 'info') continue;
+    const addr = cellForIssue(i, first, last, total);
+    byCell.set(addr, [...(byCell.get(addr) ?? []), i]);
+  }
+  for (const [addr, list] of byCell) {
+    const cell = ws.getCell(addr);
+    cell.note = list.map((i) => `• ${i.message}`).join('\n');
+    if (list.some((i) => i.severity === 'error')) cell.fill = ERROR_FILL;
+  }
 }
 
 const FONT = 'Arial';
@@ -146,6 +184,7 @@ export function addOwnershipSheet(wb: ExcelJS.Workbook, d: ParcelData, opts: Own
     cell.value = value;
     style(cell, { h: 'center', v: 'middle' });
   }
+  if (opts.issues?.length) annotate(ws, opts.issues, first, last, total);
   return ws;
 }
 

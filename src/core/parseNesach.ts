@@ -1,5 +1,5 @@
 import { looksLikeShare, normalizeShareText } from './fraction';
-import { cleanText } from './hebrew';
+import { cleanText, looksReversed } from './hebrew';
 import { normalizeIdType, padIdIfValid } from './israeliId';
 import { rightEdge, toLines, type Line } from './layout';
 import type { ExtractMeta, Issue, Owner, ParseResult, RawDocument, RawItem } from './types';
@@ -352,8 +352,19 @@ function parseOwners(lines: Line[], meta: ExtractMeta, issues: Issue[]): Owner[]
       idNumber = padded;
     }
 
+    let name = joined('name');
+    // Safety net: if a name ever comes out in reversed (visual) order, flip it back and say so.
+    // Only for pure-Hebrew names (no digits), where reversing is exact.
+    if (looksReversed(name) && !/\d/.test(name)) {
+      const fixed = [...name].reverse().join('');
+      if (!looksReversed(fixed)) {
+        issues.push(issue('warning', 'NAME_REVERSED_FIXED', `בעלים ${ownerIndex + 1}: השם נקרא בסדר הפוך ותוקן אוטומטית ("${name}" ← "${fixed}").`, ownerIndex));
+        name = fixed;
+      }
+    }
+
     owners.push({
-      name: joined('name'),
+      name,
       idType: idType ? normalizeIdType(idType) : null,
       idNumber: idNumber || null,
       share: share ?? '',

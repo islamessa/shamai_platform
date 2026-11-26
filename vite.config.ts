@@ -46,6 +46,8 @@ function cspMeta(): Plugin {
     "img-src 'self' blob: data:",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' blob: data:",
+    // the original extract is shown in the browser's own PDF viewer from a local blob: URL
+    "frame-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'none'",

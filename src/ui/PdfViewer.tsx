@@ -1,8 +1,31 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { openPdf } from './pdf';
 
-/** Renders every page of the PDF to canvases, so the user can compare the form with the original extract. */
+/**
+ * Shows the original extract next to the form.
+ * Preferred: the browser's own PDF viewer (the same one that opens a PDF on double-click). It renders the
+ * extract exactly, with zoom and search. The file stays local (a blob: URL), nothing is uploaded.
+ * Fallback for browsers without a built-in viewer: pages drawn with pdf.js.
+ */
 export function PdfViewer({ file }: { file: File }) {
+  const url = useMemo(() => URL.createObjectURL(new Blob([file], { type: 'application/pdf' })), [file]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  const native = typeof navigator !== 'undefined' && navigator.pdfViewerEnabled === true;
+
+  return (
+    <div className="pdf-pane">
+      <div className="pdf-toolbar">
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          פתיחת הנסח בלשונית חדשה ↗
+        </a>
+      </div>
+      {native ? <iframe className="pdf-frame" src={`${url}#navpanes=0&view=FitH`} title="הנסח המקורי" /> : <CanvasPages file={file} />}
+    </div>
+  );
+}
+
+/** Fallback preview: every page drawn to a canvas with pdf.js. */
+function CanvasPages({ file }: { file: File }) {
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 

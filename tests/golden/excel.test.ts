@@ -4,6 +4,16 @@ import { buildOwnershipWorkbook, outputFileName, titleText } from '../../src/cor
 import { buildReportWorkbook } from '../../src/core/excel/report';
 import { loadRaw, run } from '../helpers/fixtures';
 
+const isRed = (c: ExcelJS.Cell) => (c.fill as ExcelJS.FillPattern | undefined)?.fgColor?.argb === 'FFFFC7CE';
+
+/** ExcelJS returns a note either as text or as rich text. */
+function noteText(n: unknown): string {
+  if (!n) return '';
+  if (typeof n === 'string') return n;
+  const t = (n as { texts?: Array<{ text: string }> }).texts;
+  return t ? t.map((x) => x.text).join('') : String(n);
+}
+
 async function readBack(bytes: Uint8Array) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(bytes as unknown as ArrayBuffer);
@@ -69,6 +79,34 @@ describe('ownership sheet (בעלות)', () => {
     expect((ws.getCell('J6').value as { result: number }).result).toBe(417);
   });
 
+  it('marks problem cells inside the sheet (note + red fill for errors, note only for warnings)', async () => {
+    const r = run(loadRaw('old-multi-owner')); // owner 1: ID invalid even after padding; owners 2-6: IDs padded
+    const ws = (await readBack(await buildOwnershipWorkbook(r.parsed.data!, { issues: r.issues }))).getWorksheet('בעלות')!;
+    const g5 = ws.getCell('G5');
+    expect(String(noteText(g5.note))).toContain('קצר מ-9 ספרות');
+    expect(g5.fill).toMatchObject({ type: 'pattern', fgColor: { argb: 'FFFFC7CE' } });
+    expect(g5.value).toBe(r.parsed.data!.owners[0].idNumber); // exported exactly as printed
+    expect(String(noteText(ws.getCell('G6').note))).toContain('אפסים מובילים');
+    expect(isRed(ws.getCell('G6'))).toBe(false); // warnings: note only
+    expect(ws.getCell('F7').note).toBeUndefined();
+    // without issues: a clean sheet, identical to the template
+    const clean = (await readBack(await buildOwnershipWorkbook(r.parsed.data!))).getWorksheet('בעלות')!;
+    expect(clean.getCell('G5').note).toBeUndefined();
+    expect(isRed(clean.getCell('G5'))).toBe(false);
+  });
+
+  it('puts file-level findings on the subtitle cell', async () => {
+    const r = run(loadRaw('standard-2026'));
+    const ws = (
+      await readBack(
+        await buildOwnershipWorkbook(r.parsed.data!, {
+          issues: [{ severity: 'warning', code: 'SAME_PARCEL', message: 'לאותה חלקה הועלה נסח נוסף', source: 'parse' }],
+        }),
+      )
+    ).getWorksheet('בעלות')!;
+    expect(String(noteText(ws.getCell('B3').note))).toContain('נסח נוסף');
+  });
+
   it('names files by parcel and formats the title', () => {
     expect(outputFileName({ gush: '1234', helka: '56' })).toBe('גוש_1234_חלקה_56.xlsx');
     expect(titleText('  ')).toBe('תכנית _______');
@@ -94,8 +132,8 @@ describe('batch report', () => {
     const s = wb.getWorksheet('סיכום')!;
     expect(s.views[0].rightToLeft).toBe(true);
     expect(s.getCell('C2').value).toBe('תקין');
-    expect(s.getCell('C3').value).toBe('אושר ידנית');
-    expect(s.getCell('C4').value).toBe('נכשל');
+    expect(s.getCell('C3').value).toBe('נבדק ידנית');
+    expect(s.getCell('C4').value).toBe('לא נקרא אוטומטית');
     expect(s.getCell('H2').value).toBe('1/1');
     expect(String(s.getCell('J3').value)).toContain('נבדק מול הנסח');
     expect(s.getCell('I4').value).toBe('(לא הופק)');

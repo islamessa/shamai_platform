@@ -34,9 +34,20 @@ for (let i = 0; ; i++) {
 
 const problems = [];
 // A UTF-8 locale is needed for Chromium to keep Hebrew download file names (minimal containers have none).
-const browser = await chromium.launch({ env: { ...process.env, LANG: 'C.UTF-8', LC_ALL: 'C.UTF-8' } });
+// channel 'chromium' = the full browser (has the built-in PDF viewer used by the review screen)
+const browser = await chromium.launch({ channel: 'chromium', env: { ...process.env, LANG: 'C.UTF-8', LC_ALL: 'C.UTF-8' } });
 try {
   const page = await browser.newPage({ viewport: { width: 1360, height: 900 }, deviceScaleFactor: 2, acceptDownloads: true });
+  // Simulate a browser that is NOT the very latest version: remove the newest JavaScript features from the page and
+  // from the pdf.js worker. (The modern pdf.js build needed them and hung on such browsers; this guards against regressions.)
+  const STRIP = `delete Promise.try; delete Map.prototype.getOrInsertComputed; delete Map.prototype.getOrInsert;
+    delete WeakMap.prototype.getOrInsertComputed; delete WeakMap.prototype.getOrInsert; delete Math.sumPrecise;
+    delete Uint8Array.prototype.toHex; delete Uint8Array.fromBase64; delete Uint8Array.prototype.toBase64;`;
+  await page.addInitScript(STRIP);
+  await page.route(/pdf\.worker.*\.mjs/, async (route) => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: `${STRIP}\n${await res.text()}` });
+  });
   page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
   page.on('console', (m) => m.type() === 'error' && problems.push(`console: ${m.text()}`));
   const requests = [];
@@ -61,13 +72,11 @@ try {
   const reviewRow = page.locator('tr.row-review').first();
   if (await reviewRow.count()) {
     await reviewRow.getByRole('button', { name: 'בדיקה ועריכה' }).click();
-    await page.locator('.pdf-page').first().waitFor({ timeout: 20_000 });
-    await page.waitForTimeout(800);
+    await page.locator('.pdf-frame, .pdf-page').first().waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(2500);
     await page.screenshot({ path: join(OUT, '2-review.png') });
-    await page.getByTestId('verified').check();
-    const approveBtn = page.getByTestId('approve');
-    if (await approveBtn.isDisabled()) await page.locator('.override textarea').fill('מספר ת.ז ישן ללא ספרת ביקורת; נבדק מול הנסח');
-    await approveBtn.click();
+    await page.locator('.override textarea').fill('מספר ת.ז ישן ללא ספרת ביקורת; נבדק מול הנסח');
+    await page.getByTestId('approve').click();
     await page.waitForTimeout(300);
   }
   await page.screenshot({ path: join(OUT, '3-after-approve.png'), fullPage: true });
@@ -87,9 +96,12 @@ try {
       continue;
     }
     const total = [...Array(ws.rowCount).keys()].map((i) => ws.getRow(i + 1)).find((r) => r.getCell('F').value === 'סה"כ');
-    console.log(`  ${name}: sheet=${ws.name} rtl=${ws.views[0]?.rightToLeft} owners=${total.number - 5} total=${total.getCell('I').value.result}`);
+    let marked = 0;
+    ws.eachRow((row) => row.eachCell((c) => c.note && marked++));
+    console.log(`  ${name}: sheet=${ws.name} rtl=${ws.views[0]?.rightToLeft} owners=${total.number - 5} total=${total.getCell('I').value.result} marked-cells=${marked}`);
   }
-  const external = requests.filter((u) => !u.startsWith(BASE) && !u.startsWith('blob:') && !u.startsWith('data:'));
+  // only real network traffic counts (chrome:// and chrome-extension:// are the browser's own built-in PDF viewer)
+  const external = requests.filter((u) => /^https?:/.test(u) && !u.startsWith(BASE));
   console.log(`\nNetwork requests to other hosts: ${external.length === 0 ? 'none' : external.join(', ')}`);
   if (external.length) problems.push('external requests made');
 } finally {

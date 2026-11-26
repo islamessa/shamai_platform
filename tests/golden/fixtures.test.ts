@@ -105,11 +105,14 @@ describe('mutations of a good extract are caught (never silently wrong)', () => 
     expect(r.issues).toContainEqual(expect.objectContaining({ code: 'ID_CHECKSUM', ownerIndex: 1 }));
   });
 
-  it('reversed Hebrew name → flagged', () => {
+  it('reversed Hebrew name → fixed automatically and reported', () => {
     const name = owners[2].name;
     const reversed = [...name].reverse().join('');
     const r = run(mapItems(base, (it) => (it.str === name ? { ...it, str: reversed } : it)));
-    expect(r.issues).toContainEqual(expect.objectContaining({ code: 'REVERSED_TEXT', ownerIndex: 2 }));
+    expect(r.parsed.data!.owners[2].name).toBe(name);
+    expect(r.issues).toContainEqual(expect.objectContaining({ code: 'NAME_REVERSED_FIXED', severity: 'warning', ownerIndex: 2 }));
+    expect(r.codes).not.toContain('REVERSED_TEXT');
+    expect(r.status).toBe('ok');
   });
 
   it('a missing share value → share missing + count mismatch', () => {

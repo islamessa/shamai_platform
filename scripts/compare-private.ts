@@ -98,7 +98,8 @@ async function main() {
     console.log(`\n${f}: ${status}${parsed.data ? ` (גוש ${parsed.data.gush} חלקה ${parsed.data.helka}, ${parsed.data.owners.length} בעלים)` : ''}`);
     for (const i of issues.filter((x) => x.severity !== 'info')) console.log(`   [${i.severity}] ${i.message}`);
     if (!parsed.data) continue;
-    const bytes = await buildOwnershipWorkbook(parsed.data);
+    // problem cells are marked (as in the app's default); files without findings stay identical to the template
+    const bytes = await buildOwnershipWorkbook(parsed.data, { issues });
     const outName = outputFileName(parsed.data);
     writeFileSync(join(OUT, outName), bytes);
     console.log(`   → ${join(OUT, outName)}`);

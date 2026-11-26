@@ -28,7 +28,7 @@ export function BatchTable(props: {
           הכל ({props.entries.length})
         </button>
         <button className={filter === 'attention' ? 'active' : ''} onClick={() => setFilter('attention')}>
-          דורשים טיפול
+          עם הערות
         </button>
         <button className={filter === 'done' ? 'active' : ''} onClick={() => setFilter('done')}>
           מוכנים להורדה
@@ -76,8 +76,8 @@ export function BatchTable(props: {
                 </td>
                 <td className="actions">
                   {e.status !== 'processing' && (
-                    <button onClick={() => props.onReview(e.id)} className={e.status === 'review' || e.status === 'failed' ? 'primary' : ''}>
-                      {e.status === 'review' || e.status === 'failed' ? 'בדיקה ועריכה' : 'צפייה / עריכה'}
+                    <button onClick={() => props.onReview(e.id)} className={e.status === 'failed' ? 'primary' : ''}>
+                      {e.status === 'failed' ? 'הזנה ידנית' : e.status === 'review' ? 'בדיקה ועריכה' : 'צפייה / עריכה'}
                     </button>
                   )}
                   {isExportable(e) && !duplicate && <button onClick={() => props.onDownload(e)}>הורדה</button>}

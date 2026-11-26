@@ -47,7 +47,8 @@ export async function processEntry(e: FileEntry): Promise<FileEntry> {
   }
 }
 
-export const isExportable = (e: FileEntry) => (e.status === 'ok' || e.status === 'approved') && !!e.data;
+/** Every file that was read (or filled in by hand) produces an Excel; problems are marked inside it, not blocking. */
+export const isExportable = (e: FileEntry) => (e.status === 'ok' || e.status === 'review' || e.status === 'approved') && !!e.data;
 
 /** Duplicate / same-parcel analysis of the whole batch (derived; recomputed whenever the list changes). */
 export function analyzeEntries(entries: FileEntry[]): Map<string, BatchInfo> {

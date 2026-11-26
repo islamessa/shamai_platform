@@ -13,7 +13,7 @@ export interface ReportRow {
   outputName?: string;
   /** manual edits made in the review screen */
   audit: AuditEntry[];
-  /** note entered when approving despite remaining errors */
+  /** optional note entered by the user in the review screen */
   overrideNote?: string;
   approvedAt?: string;
 }
@@ -43,10 +43,10 @@ export async function buildReportWorkbook(rows: ReportRow[], planNumber?: string
     const shares = r.data?.owners.map((o) => parseShare(o.share)) ?? [];
     const total = shares.length && shares.every(Boolean) ? format(sum(shares as NonNullable<(typeof shares)[number]>[])) : '';
     const details = r.issues.map((i) => `[${SEVERITY_LABEL[i.severity]}] ${i.message}`);
-    if (r.overrideNote) details.push(`[אישור ידני חרף שגיאות] ${r.overrideNote}`);
+    if (r.overrideNote) details.push(`[הערת משתמש] ${r.overrideNote}`);
     const row = s.addRow([
       k + 1, r.fileName, STATUS_LABEL[r.status], r.data?.gush ?? '', r.data?.helka ?? '', r.data?.registeredArea ?? '',
-      r.data?.owners.length ?? '', total, (r.status === 'ok' || r.status === 'approved') && r.outputName ? r.outputName : '(לא הופק)',
+      r.data?.owners.length ?? '', total, r.outputName ?? '(לא הופק)',
       details.join('\n'),
     ]);
     row.eachCell((c) => {
@@ -64,7 +64,7 @@ export async function buildReportWorkbook(rows: ReportRow[], planNumber?: string
   const a = sheet(wb, 'שינויים ידניים', [['קובץ PDF', 28], ['שדה', 24], ['לפני', 30], ['אחרי', 30], ['זמן', 20]]);
   for (const r of rows) {
     for (const e of r.audit) a.addRow([r.fileName, e.field, e.before, e.after, e.time]);
-    if (r.overrideNote) a.addRow([r.fileName, 'אישור חרף שגיאות', '', r.overrideNote, r.approvedAt ?? '']);
+    if (r.overrideNote) a.addRow([r.fileName, 'הערת משתמש', '', r.overrideNote, r.approvedAt ?? '']);
   }
   a.eachRow((row, i) => {
     if (i > 1) row.eachCell((c) => (c.alignment = { wrapText: true, vertical: 'top', readingOrder: 'rtl' }));

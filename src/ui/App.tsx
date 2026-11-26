@@ -10,6 +10,7 @@ import { UploadZone } from './UploadZone';
 export function App() {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [planNumber, setPlanNumber] = useState('');
+  const [markIssues, setMarkIssues] = useState(true);
   const [reviewId, setReviewId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [zipProgress, setZipProgress] = useState<string | null>(null);
@@ -50,20 +51,23 @@ export function App() {
   const analysis = useMemo(() => analyzeEntries(entries), [entries]);
   const exportable = exportList(entries, analysis).length;
   const reviewing = entries.find((e) => e.id === reviewId) ?? null;
+  const exportOptions = { planNumber, markIssues };
 
-  const approve = (id: string, data: ParcelData, audit: AuditEntry[], overrideNote?: string) => {
+  const save = (id: string, data: ParcelData, audit: AuditEntry[], note?: string) => {
     setEntries((prev) =>
       prev.map((e) => {
         if (e.id !== id) return e;
-        const parseIssues = e.parse?.issues ?? [];
-        const changed = audit.length > 0;
+        // owner-specific findings from reading the PDF only still apply if the owner rows were not added/removed
+        const sameRows = (e.original?.owners.length ?? -1) === data.owners.length;
+        const parseIssues = (e.parse?.issues ?? []).filter((i) => i.ownerIndex === undefined || sameRows);
+        const changed = audit.length > 0 || !!note;
         const unchangedOk = e.status === 'ok' && !changed;
         return {
           ...e,
           data,
           issues: [...parseIssues, ...validateData(data)],
           audit: [...e.audit, ...audit],
-          overrideNote: overrideNote || e.overrideNote,
+          overrideNote: note || e.overrideNote,
           approvedAt: unchangedOk ? e.approvedAt : new Date().toLocaleString('he-IL'),
           status: unchangedOk ? 'ok' : 'approved',
         };
@@ -81,7 +85,7 @@ export function App() {
   const zip = async () => {
     setZipProgress('מכין קבצים…');
     try {
-      await downloadZip(entries, planNumber, (d, t) => setZipProgress(`מכין קבצים… ${d}/${t}`));
+      await downloadZip(entries, exportOptions, (d, t) => setZipProgress(`מכין קבצים… ${d}/${t}`));
     } finally {
       setZipProgress(null);
     }
@@ -94,10 +98,16 @@ export function App() {
           <h1>המרת נסח טאבו לטבלת בעלות (Excel)</h1>
           <p className="privacy">🔒 הקבצים מעובדים במחשב שלך בלבד. שום קובץ או נתון לא נשלח לשרת.</p>
         </div>
-        <label className="plan">
-          מספר תכנית (לכותרת):
-          <input value={planNumber} onChange={(e) => setPlanNumber(e.target.value)} placeholder="לא חובה" />
-        </label>
+        <div className="options">
+          <label className="plan">
+            מספר תכנית (לכותרת):
+            <input value={planNumber} onChange={(e) => setPlanNumber(e.target.value)} placeholder="לא חובה" />
+          </label>
+          <label className="check-inline">
+            <input type="checkbox" checked={markIssues} onChange={(e) => setMarkIssues(e.target.checked)} />
+            סימון הערות בתוך קובצי האקסל (צבע + הערה בתא)
+          </label>
+        </div>
       </header>
 
       <UploadZone onFiles={addFiles} />
@@ -107,31 +117,37 @@ export function App() {
         <>
           <section className="summary">
             <span className="chip ok">תקין: {counts.ok}</span>
-            <span className="chip approved">אושר ידנית: {counts.approved}</span>
-            <span className="chip review">דורש בדיקה: {counts.review}</span>
-            <span className="chip failed">נכשל: {counts.failed}</span>
+            <span className="chip review">הופק עם הערות: {counts.review}</span>
+            <span className="chip approved">נבדק ידנית: {counts.approved}</span>
+            {counts.failed > 0 && <span className="chip failed">לא נקרא אוטומטית: {counts.failed}</span>}
             {counts.processing > 0 && <span className="chip processing">בעיבוד: {counts.processing}</span>}
             <span className="spacer" />
             <button className="primary" disabled={exportable === 0 || !!zipProgress || counts.processing > 0} onClick={zip}>
               {zipProgress ?? `הורדת הכל (ZIP) – ${exportable} קבצים + דוח`}
             </button>
-            <button onClick={() => downloadReport(entries, planNumber)} disabled={counts.processing > 0}>
+            <button onClick={() => downloadReport(entries, exportOptions)} disabled={counts.processing > 0}>
               דוח עיבוד בלבד
             </button>
             <button className="ghost" onClick={clearAll}>
               ניקוי
             </button>
           </section>
-          {counts.review + counts.failed > 0 && (
+          {counts.review > 0 && (
             <p className="hint">
-              קבצים במצב "דורש בדיקה" או "נכשל" <b>אינם נכללים</b> בהורדה עד שתבדקו ותאשרו אותם (כפתור "בדיקה ועריכה").
+              קבצים במצב "הופק עם הערות" <b>נכללים בהורדה</b>. הנתונים הועתקו כפי שהם מופיעים בנסח, והתאים שדורשים תשומת לב מסומנים
+              בצבע ובהערה בתוך קובץ האקסל ומפורטים בדוח העיבוד. אפשר לתקן בכפתור "בדיקה ועריכה".
+            </p>
+          )}
+          {counts.failed > 0 && (
+            <p className="hint">
+              קובץ שלא ניתן לקרוא אוטומטית (למשל נסח סרוק) אפשר להשלים בכפתור "הזנה ידנית"; הנסח מוצג לצד הטופס.
             </p>
           )}
           <BatchTable
             entries={entries}
             analysis={analysis}
             onReview={setReviewId}
-            onDownload={(e) => downloadOne(e, entries, planNumber)}
+            onDownload={(e) => downloadOne(e, entries, exportOptions)}
             onRemove={(id) => setEntries((prev) => prev.filter((e) => e.id !== id))}
           />
         </>
@@ -142,7 +158,7 @@ export function App() {
           key={reviewing.id}
           entry={reviewing}
           onCancel={() => setReviewId(null)}
-          onApprove={(data, audit, note) => approve(reviewing.id, data, audit, note)}
+          onApprove={(data, audit, note) => save(reviewing.id, data, audit, note)}
         />
       )}
 

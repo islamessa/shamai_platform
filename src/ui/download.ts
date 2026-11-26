@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { buildOwnershipWorkbook } from '../core/excel/ownershipSheet';
 import { buildReportWorkbook, type ReportRow } from '../core/excel/report';
-import { batchIssues } from '../core/batch';
+import { batchIssues, type BatchInfo } from '../core/batch';
 import { analyzeEntries, exportList, isExportable, outputNames, type FileEntry } from './state';
 
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -20,12 +20,17 @@ export function saveFile(bytes: Uint8Array | Blob, name: string, type = XLSX) {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
+/** All issues of a file, including batch-level ones (duplicates, same parcel twice). */
+function fileIssues(e: FileEntry, analysis = new Map<string, BatchInfo>()) {
+  return [...e.issues, ...batchIssues(analysis.get(e.id))];
+}
+
 export function reportRows(entries: FileEntry[]): ReportRow[] {
   const analysis = analyzeEntries(entries);
   const names = outputNames(entries, analysis);
   return entries.map((e) => {
-    const outputName = names.get(e.id);
-    const issues = [...e.issues, ...batchIssues(analysis.get(e.id))];
+    const outputName = isExportable(e) ? names.get(e.id) : undefined;
+    const issues = fileIssues(e, analysis);
     return {
       fileName: e.file.name,
       status: e.status,
@@ -39,25 +44,33 @@ export function reportRows(entries: FileEntry[]): ReportRow[] {
   });
 }
 
-export async function downloadOne(e: FileEntry, entries: FileEntry[], planNumber: string) {
-  const name = outputNames(entries).get(e.id);
+export interface ExportOptions {
+  planNumber: string;
+  /** mark problem cells inside the Excel (note + colour) */
+  markIssues: boolean;
+}
+
+export async function downloadOne(e: FileEntry, entries: FileEntry[], o: ExportOptions) {
+  const analysis = analyzeEntries(entries);
+  const name = outputNames(entries, analysis).get(e.id);
   if (!isExportable(e) || !name) return;
-  saveFile(await buildOwnershipWorkbook(e.data!, { planNumber }), name);
+  saveFile(await buildOwnershipWorkbook(e.data!, { planNumber: o.planNumber, issues: o.markIssues ? fileIssues(e, analysis) : undefined }), name);
 }
 
-export async function downloadReport(entries: FileEntry[], planNumber: string) {
-  saveFile(await buildReportWorkbook(reportRows(entries), planNumber), REPORT_NAME);
+export async function downloadReport(entries: FileEntry[], o: ExportOptions) {
+  saveFile(await buildReportWorkbook(reportRows(entries), o.planNumber), REPORT_NAME);
 }
 
-/** ZIP with one Excel per exportable file (ok / approved) + the processing report. */
-export async function downloadZip(entries: FileEntry[], planNumber: string, onProgress?: (done: number, total: number) => void) {
+/** ZIP with one Excel per file that was read (identical copies excluded) + the processing report. */
+export async function downloadZip(entries: FileEntry[], o: ExportOptions, onProgress?: (done: number, total: number) => void) {
+  const { planNumber } = o;
   const zip = new JSZip();
   const analysis = analyzeEntries(entries);
   const names = outputNames(entries, analysis);
   const exportable = exportList(entries, analysis);
   let done = 0;
   for (const e of exportable) {
-    zip.file(names.get(e.id)!, await buildOwnershipWorkbook(e.data!, { planNumber }));
+    zip.file(names.get(e.id)!, await buildOwnershipWorkbook(e.data!, { planNumber, issues: o.markIssues ? fileIssues(e, analysis) : undefined }));
     onProgress?.(++done, exportable.length);
     await new Promise((r) => setTimeout(r, 0)); // keep the UI responsive on big batches
   }
