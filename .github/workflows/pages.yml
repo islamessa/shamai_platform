@@ -4,7 +4,8 @@ name: Deploy to GitHub Pages
 # The site is static: PDFs are processed in the visitor's browser and never uploaded.
 on:
   push:
-    branches: [main]
+    # the repository's current default branch is the development branch; main is used once it exists
+    branches: [main, claude/amazing-goldberg-eokmkf]
   workflow_dispatch:
 
 permissions:
