@@ -1,0 +1,150 @@
+{
+ "ok": true,
+ "data": {
+  "gush": "7001",
+  "helka": "138",
+  "registeredArea": 5689,
+  "planArea": 5689,
+  "owners": [
+   {
+    "name": "ישראלי ישראל",
+    "idType": "ת.ז",
+    "idNumber": "1234560",
+    "share": "1/3",
+    "deed": "5097/1979",
+    "date": "04/05/1979",
+    "action": "רישום בעלות לאחר הסדר"
+   },
+   {
+    "name": "כהן דנה",
+    "idType": "ת.ז",
+    "idNumber": "031415979",
+    "share": "1/12",
+    "deed": "32101/2009/1",
+    "date": "14/09/2009",
+    "action": "ירושה"
+   },
+   {
+    "name": "לוי יוסף",
+    "idType": "ת.ז",
+    "idNumber": "031416043",
+    "share": "1/12",
+    "deed": "32101/2009/1",
+    "date": "14/09/2009",
+    "action": "ירושה"
+   },
+   {
+    "name": "מזרחי רונית",
+    "idType": "ת.ז",
+    "idNumber": "031416118",
+    "share": "1/12",
+    "deed": "32101/2009/1",
+    "date": "14/09/2009",
+    "action": "ירושה"
+   },
+   {
+    "name": "פרץ אברהם",
+    "idType": "ת.ז",
+    "idNumber": "031416183",
+    "share": "1/12",
+    "deed": "32101/2009/1",
+    "date": "14/09/2009",
+    "action": "ירושה"
+   },
+   {
+    "name": "ביטון מיכל",
+    "idType": "ת.ז",
+    "idNumber": "031416258",
+    "share": "833/5689",
+    "deed": "37264/2016/4",
+    "date": "08/09/2016",
+    "action": "מכר ללא תמורה"
+   },
+   {
+    "name": "דהן משה",
+    "idType": "ת.ז",
+    "idNumber": "031416324",
+    "share": "3190/17067",
+    "deed": "37264/2016/5",
+    "date": "08/09/2016",
+    "action": "עודף"
+   }
+  ]
+ },
+ "meta": {
+  "pdfTitle": "Nesach",
+  "pageCount": 3,
+  "sections": [
+   "תיאור הנכס",
+   "בעלויות",
+   "הערות",
+   "סוף נתונים"
+  ],
+  "ownerHeaderCount": 7,
+  "shareLabelCount": 7,
+  "hasEndMarker": true,
+  "pageHeaders": [
+   {
+    "page": 1,
+    "gush": "7001",
+    "helka": "138"
+   },
+   {
+    "page": 2,
+    "gush": "7001",
+    "helka": "138"
+   },
+   {
+    "page": 3,
+    "gush": "7001",
+    "helka": "138"
+   }
+  ],
+  "nesachNumber": "100001",
+  "issueDate": "20/09/2019",
+  "registryOffice": "פתח תקוה"
+ },
+ "issues": [
+  {
+   "severity": "info",
+   "code": "HAS_NOTES",
+   "message": "בנסח רשומות הערות (אינן משפיעות על טבלת הבעלות).",
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 2: מספר הזיהוי מופיע בנסח כ-31415979 (ללא אפסים מובילים). הושלם ל-031415979; ספרת הביקורת תקינה.",
+   "ownerIndex": 1,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 3: מספר הזיהוי מופיע בנסח כ-31416043 (ללא אפסים מובילים). הושלם ל-031416043; ספרת הביקורת תקינה.",
+   "ownerIndex": 2,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 4: מספר הזיהוי מופיע בנסח כ-31416118 (ללא אפסים מובילים). הושלם ל-031416118; ספרת הביקורת תקינה.",
+   "ownerIndex": 3,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 5: מספר הזיהוי מופיע בנסח כ-31416183 (ללא אפסים מובילים). הושלם ל-031416183; ספרת הביקורת תקינה.",
+   "ownerIndex": 4,
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 6: מספר הזיהוי מופיע בנסח כ-31416258 (ללא אפסים מובילים). הושלם ל-031416258; ספרת הביקורת תקינה.",
+   "ownerIndex": 5,
+   "source": "parse"
+  }
+ ]
+}

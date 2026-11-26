@@ -1,0 +1,36 @@
+{
+  "name": "shamai-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "נסח טאבו PDF → Excel 'בעלות' sheet. Runs fully in the browser; files never leave the user's computer.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "capture-fixture": "tsx scripts/capture-fixture.ts",
+    "compare:private": "tsx scripts/compare-private.ts",
+    "e2e:private": "node scripts/e2e-private.mjs"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^6.5.438",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "playwright": "1.63.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.4.0",
+    "vitest": "^5.1.2"
+  }
+}

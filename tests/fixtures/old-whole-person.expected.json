@@ -1,0 +1,63 @@
+{
+ "ok": true,
+ "data": {
+  "gush": "7001",
+  "helka": "136",
+  "registeredArea": 4500,
+  "planArea": 4500,
+  "owners": [
+   {
+    "name": "ישראלי ישראל",
+    "idType": "ת.ז",
+    "idNumber": "031415904",
+    "share": "בשלמות",
+    "deed": "11096/1982/1",
+    "date": "31/08/1982",
+    "action": "תיקון בעלות לאחר הסדר"
+   }
+  ]
+ },
+ "meta": {
+  "pdfTitle": "Nesach",
+  "pageCount": 2,
+  "sections": [
+   "תיאור הנכס",
+   "בעלויות",
+   "הערות",
+   "סוף נתונים"
+  ],
+  "ownerHeaderCount": 1,
+  "shareLabelCount": 1,
+  "hasEndMarker": true,
+  "pageHeaders": [
+   {
+    "page": 1,
+    "gush": "7001",
+    "helka": "136"
+   },
+   {
+    "page": 2,
+    "gush": "7001",
+    "helka": "136"
+   }
+  ],
+  "nesachNumber": "100001",
+  "issueDate": "20/09/2019",
+  "registryOffice": "פתח תקוה"
+ },
+ "issues": [
+  {
+   "severity": "info",
+   "code": "HAS_NOTES",
+   "message": "בנסח רשומות הערות (אינן משפיעות על טבלת הבעלות).",
+   "source": "parse"
+  },
+  {
+   "severity": "warning",
+   "code": "ID_PADDED",
+   "message": "בעלים 1: מספר הזיהוי מופיע בנסח כ-31415904 (ללא אפסים מובילים). הושלם ל-031415904; ספרת הביקורת תקינה.",
+   "ownerIndex": 0,
+   "source": "parse"
+  }
+ ]
+}

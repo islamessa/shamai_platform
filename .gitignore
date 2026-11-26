@@ -1,0 +1,20 @@
+# Dependencies / build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# PRIVACY: real נסח טאבו files and their outputs contain names and Israeli ID numbers.
+# They must NEVER be committed. Keep them in samples/private/ (ignored) only.
+samples/private/
+*.pdf
+*.xlsx
+*.zip
+!tests/fixtures/**/*.json
+
+# Local tooling / OS
+.env
+.env.*
+.DS_Store
+test-results/
+playwright-report/

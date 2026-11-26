@@ -1,0 +1,43 @@
+{
+ "ok": true,
+ "data": {
+  "gush": "7001",
+  "helka": "137",
+  "registeredArea": 417,
+  "planArea": 417,
+  "owners": [
+   {
+    "name": "מדינת ישראל",
+    "idType": null,
+    "idNumber": null,
+    "share": "בשלמות",
+    "deed": "5097/1979",
+    "date": "04/05/1979",
+    "action": "רישום בעלות לאחר הסדר"
+   }
+  ]
+ },
+ "meta": {
+  "pdfTitle": "Nesach",
+  "pageCount": 1,
+  "sections": [
+   "תיאור הנכס",
+   "בעלויות",
+   "סוף נתונים"
+  ],
+  "ownerHeaderCount": 1,
+  "shareLabelCount": 1,
+  "hasEndMarker": true,
+  "pageHeaders": [
+   {
+    "page": 1,
+    "gush": "7001",
+    "helka": "137"
+   }
+  ],
+  "nesachNumber": "100001",
+  "issueDate": "20/09/2019",
+  "registryOffice": "פתח תקוה"
+ },
+ "issues": []
+}
